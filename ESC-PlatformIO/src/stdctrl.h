@@ -72,8 +72,7 @@ char waveTable[] = {
     12,  15,  18,  21,  25,  29,  33,  37,  42,  46,  51,  56,  62,  67,  73,
     78,  84,  90,  96,  102, 108, 115, 121};
 
-
-void reverse(int a) {
+void reverse(int a) {  //反転相を制御するよ
   if (a == 1) {
     LL_GPIO_SetOutputPin(GPIOA, GPIO_PIN_9);   //! U
     LL_GPIO_SetOutputPin(GPIOC, GPIO_PIN_14);  //! V
@@ -85,8 +84,8 @@ void reverse(int a) {
   }
 }
 
-void pwmOutput(int a) {
-  LL_TIM_OC_SetCompareCH3(TIM2, waveTable[a] * 0.3);
-  LL_TIM_OC_SetCompareCH4(TIM2, waveTable[(a + 43) % 128] * 0.3);
-  LL_TIM_OC_SetCompareCH1(TIM2, waveTable[(a + 85) % 128] * 0.3);
+void pwmOutput(int a, float power) {  //各相に電圧を印加するよ
+  LL_TIM_OC_SetCompareCH3(TIM2, waveTable[a] * power);
+  LL_TIM_OC_SetCompareCH4(TIM2, waveTable[(a + 43) % 128] * power);
+  LL_TIM_OC_SetCompareCH1(TIM2, waveTable[(a + 85) % 128] * power);
 }
