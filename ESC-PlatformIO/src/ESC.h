@@ -30,7 +30,7 @@ void ESC_initialize() {
   reverse(1);
 
   timeLoop(1000) {
-    pwmOut(0, 0.2);  //ブザーならす
+    pwmOutput(0, 0.2);  //ブザーならす
   }
 
   changeFreq(125000);
