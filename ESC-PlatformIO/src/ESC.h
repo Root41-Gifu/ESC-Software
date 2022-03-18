@@ -8,7 +8,7 @@ void ESC_Drive() {
   electricalAngle = getElectricalAngle();
 
   if (electricalAngle <= _electricalAngle) {
-    if (electricalAngle <= _electricalAngle - 2) {
+    if (electricalAngle <= _electricalAngle - 10) {
     } else {
       electricalAngle = _electricalAngle;
     }
@@ -20,11 +20,11 @@ void ESC_Drive() {
   //   }
   // }
 
-  pwmOutput((electricalAngle + 42) % 128, 0.5);
+  pwmOutput((electricalAngle + 40) % 128, 0.6);
 
   _electricalAngle = electricalAngle;
 
-  HAL_Delay(1);
+  HAL_Delay(20);
   // for (int i = 0; i < 128; i++)
   // {
   //   pwmOutput(i, 0.3);
@@ -93,5 +93,6 @@ void ESC_initialize() {
     pwmOutput(0, 0.1);  //ブザーならす
   }
   reverse(0);
-  changeFreq(30000);
+  // changeFreq(30000);
+  changeFreq(20000);
 }

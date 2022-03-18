@@ -127,7 +127,7 @@ int convertToElectricalAngle(
 }
 
 char getElectricalAngle(void) {
-  int angle = encoderRead() + 4096 - reference;
+  int angle = encoderRead() + 4096 - 1447;
   angle %= 4096;
   angle = convertToElectricalAngle(angle);
 

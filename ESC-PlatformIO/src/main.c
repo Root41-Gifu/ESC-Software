@@ -53,7 +53,8 @@ int main(void) {
 
   ESC_initialize();
 
-  HAL_SYSTICK_Config(SystemCoreClock / (100000U / uwTickFreq));  // 2097152U
+  HAL_SYSTICK_Config(SystemCoreClock / (262144U));  // 2097152U
+  // HAL_SYSTICK_Config((uint32_t)20U);  // 2097152U
 
   LL_GPIO_SetOutputPin(GPIOA, GPIO_PIN_9);   //! U
   LL_GPIO_SetOutputPin(GPIOC, GPIO_PIN_14);  //! V
