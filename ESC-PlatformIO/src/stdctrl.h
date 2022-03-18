@@ -1,3 +1,11 @@
+// NOTE:Arduinoからの引用
+#define constrain(amt, low, high) \
+  ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
+
+extern long map(long x, long in_min, long in_max, long out_min, long out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 //周波数変更
 void changeFreq(unsigned long freq) {
   LL_TIM_InitTypeDef TIM_InitStruct = {0};
@@ -88,4 +96,40 @@ void pwmOutput(int a, float power) {  //各相に電圧を印加するよ
   LL_TIM_OC_SetCompareCH3(TIM2, waveTable[a] * power);
   LL_TIM_OC_SetCompareCH4(TIM2, waveTable[(a + 43) % 128] * power);
   LL_TIM_OC_SetCompareCH1(TIM2, waveTable[(a + 85) % 128] * power);
+}
+
+int encoderRead(void) {
+  HAL_ADC_Start(&hadc);
+  HAL_ADC_PollForConversion(&hadc, 10);  // ADC変換終了を待機
+  HAL_ADC_Stop(&hadc);
+  return 4095 - HAL_ADC_GetValue(&hadc);
+}
+
+void ESC_activate(void) {
+  bool startFlag = false;
+  while (!startFlag) {
+    HAL_UART_Receive_IT(&huart2, serialBuffer, 1);
+    // HAL_UART_Transmit_IT(&huart2, buffer, 1);
+    gUartReceived = 0;
+
+    if (serialBuffer[0] != 0) {
+      startFlag = true;
+    }
+  }
+}
+
+int convertToElectricalAngle(
+    const int _mechanicalAngle) {  //電気角に変換 1byteで返す
+  int _electricalAngle = constrain(_mechanicalAngle, 0, 4095) % 585;
+  _electricalAngle = constrain(map(_electricalAngle, 0, 585, 0, 127), 0, 127);
+
+  return _electricalAngle;
+}
+
+char getElectricalAngle(void) {
+  int angle = encoderRead() + 4096 - reference;
+  angle %= 4096;
+  angle = convertToElectricalAngle(angle);
+
+  return (char)angle;
 }
