@@ -100,9 +100,15 @@ void pwmOutput(int a, float power) {  //各相に電圧を印加するよ
 
 int encoderRead(void) {
   HAL_ADC_Start(&hadc);
-  HAL_ADC_PollForConversion(&hadc, 10);  // ADC変換終了を待機
-  HAL_ADC_Stop(&hadc);
-  return 4095 - HAL_ADC_GetValue(&hadc);
+
+  // HAL_ADC_Stop(&hadc);
+  int s = HAL_ADC_PollForConversion(&hadc, 3);
+  int value = 0;
+  if (s == HAL_OK) {
+    value = HAL_ADC_GetValue(&hadc);
+  }
+
+  return 4095 - value;
 }
 
 void ESC_activate(void) {
@@ -127,7 +133,7 @@ int convertToElectricalAngle(
 }
 
 char getElectricalAngle(void) {
-  int angle = encoderRead() + 4096 - 1447;
+  int angle = encoderRead() + 4096 - reference;  // 1447
   angle %= 4096;
   angle = convertToElectricalAngle(angle);
 

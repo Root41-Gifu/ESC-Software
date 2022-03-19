@@ -49,7 +49,9 @@ int main(void) {
   LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH4);
   LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH1);
 
-  // ESC_activate();
+  // HAL_ADC_Start(&hadc);
+
+  ESC_activate();
 
   ESC_initialize();
 

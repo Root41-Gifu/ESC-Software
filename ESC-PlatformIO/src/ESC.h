@@ -14,23 +14,11 @@ void ESC_Drive() {
     }
   }
 
-  // if (electricalAngle >= _electricalAngle) {
-  //   if (electricalAngle >= _electricalAngle + 30) {
-  //     electricalAngle = _electricalAngle;
-  //   }
-  // }
-
-  pwmOutput((electricalAngle + 40) % 128, 0.6);
+  pwmOutput((electricalAngle + 32) % 128, 0.2);
 
   _electricalAngle = electricalAngle;
 
-  HAL_Delay(20);
-  // for (int i = 0; i < 128; i++)
-  // {
-  //   pwmOutput(i, 0.3);
-  //   HAL_Delay(10);
-  // }
-  
+  HAL_Delay(100);
 }
 
 int calibration(void) {
@@ -94,5 +82,5 @@ void ESC_initialize() {
   }
   reverse(0);
   // changeFreq(30000);
-  changeFreq(20000);
+  changeFreq(30000);
 }

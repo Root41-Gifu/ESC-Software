@@ -62,42 +62,38 @@ extern UART_HandleTypeDef huart2;
 /* USER CODE END EV */
 
 /******************************************************************************/
-/*           Cortex-M0+ Processor Interruption and Exception Handlers          */
+/*           Cortex-M0+ Processor Interruption and Exception Handlers */
 /******************************************************************************/
 /**
-  * @brief This function handles Non maskable interrupt.
-  */
-void NMI_Handler(void)
-{
+ * @brief This function handles Non maskable interrupt.
+ */
+void NMI_Handler(void) {
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
 
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
-	while (1) {
-	}
+  while (1) {
+  }
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
 /**
-  * @brief This function handles Hard fault interrupt.
-  */
-void HardFault_Handler(void)
-{
+ * @brief This function handles Hard fault interrupt.
+ */
+void HardFault_Handler(void) {
   /* USER CODE BEGIN HardFault_IRQn 0 */
 
   /* USER CODE END HardFault_IRQn 0 */
-  while (1)
-  {
+  while (1) {
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }
 
 /**
-  * @brief This function handles System service call via SWI instruction.
-  */
-void SVC_Handler(void)
-{
+ * @brief This function handles System service call via SWI instruction.
+ */
+void SVC_Handler(void) {
   /* USER CODE BEGIN SVC_IRQn 0 */
 
   /* USER CODE END SVC_IRQn 0 */
@@ -107,10 +103,9 @@ void SVC_Handler(void)
 }
 
 /**
-  * @brief This function handles Pendable request for system service.
-  */
-void PendSV_Handler(void)
-{
+ * @brief This function handles Pendable request for system service.
+ */
+void PendSV_Handler(void) {
   /* USER CODE BEGIN PendSV_IRQn 0 */
 
   /* USER CODE END PendSV_IRQn 0 */
@@ -120,14 +115,14 @@ void PendSV_Handler(void)
 }
 
 /**
-  * @brief This function handles System tick timer.
-  */
-void SysTick_Handler(void)
-{
+ * @brief This function handles System tick timer.
+ */
+void SysTick_Handler(void) {
   /* USER CODE BEGIN SysTick_IRQn 0 */
 
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
+  // electricalAngle = getElectricalAngle();
   /* USER CODE BEGIN SysTick_IRQn 1 */
 
   /* USER CODE END SysTick_IRQn 1 */
@@ -141,28 +136,27 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles TIM2 global interrupt.
-  */
-void TIM2_IRQHandler(void)
-{
+ * @brief This function handles TIM2 global interrupt.
+ */
+void TIM2_IRQHandler(void) {
   /* USER CODE BEGIN TIM2_IRQn 0 */
-	static int toggle = 0;
+  static int toggle = 0;
   /* USER CODE END TIM2_IRQn 0 */
   /* USER CODE BEGIN TIM2_IRQn 1 */
-	if (toggle % 2 == 0) {
-		LL_GPIO_SetOutputPin(GPIOA, GPIO_PIN_9);
-	} else {
-		LL_GPIO_ResetOutputPin(GPIOA, GPIO_PIN_9);
-	}
-	toggle++;
+  if (toggle % 2 == 0) {
+    LL_GPIO_SetOutputPin(GPIOA, GPIO_PIN_9);
+  } else {
+    LL_GPIO_ResetOutputPin(GPIOA, GPIO_PIN_9);
+  }
+  toggle++;
   /* USER CODE END TIM2_IRQn 1 */
 }
 
 /**
-  * @brief This function handles USART2 global interrupt / USART2 wake-up interrupt through EXTI line 26.
-  */
-void USART2_IRQHandler(void)
-{
+ * @brief This function handles USART2 global interrupt / USART2 wake-up
+ * interrupt through EXTI line 26.
+ */
+void USART2_IRQHandler(void) {
   /* USER CODE BEGIN USART2_IRQn 0 */
 
   /* USER CODE END USART2_IRQn 0 */
