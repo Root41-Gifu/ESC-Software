@@ -1,38 +1,45 @@
-#define timeLoop(x)      \
-  timer = HAL_GetTick(); \
-  while (HAL_GetTick() - timer < x)
+// #define timeLoop(x)      \
+//   timer = HAL_GetTick(); \
+//   while (HAL_GetTick() - timer < x)
 
-unsigned long timer;
+// unsigned long timer;
+
+bool direction = true;
+char interval = 0;
+
+int value = -20;
+int integral = 0;
 
 void ESC_Drive() {
   electricalAngle = getElectricalAngle();
-
-  if (electricalAngle <= _electricalAngle) {
-    if (electricalAngle <= _electricalAngle - 10) {
-    } else {
-      electricalAngle = _electricalAngle;
-    }
+  if (integral > 0) {
+    pwmOutput((electricalAngle + 128 + 35) % 128, (float)integral / 1000.0);
+  } else {
+    pwmOutput((electricalAngle + 128 - 35) % 128, (float)integral / -1000.0);
   }
-
-  pwmOutput((electricalAngle + 32) % 128, 0.2);
-
   _electricalAngle = electricalAngle;
 
-  HAL_Delay(100);
+  HAL_Delay(10);
+  interval++;
+  interval %= 10;
+
+  if (interval == 0) {
+    velocity = mechanicalAngle - _mechanicalAngle;
+    if (velocity <= -2000) {
+      velocity += 4096;
+    }
+    if (velocity >= 2000) {
+      velocity -= 4096;
+    }
+    _mechanicalAngle = mechanicalAngle;
+    integral += value - velocity;
+    integral = constrain(integral, -800, 800);
+  }
 }
 
 int calibration(void) {
   changeFreq(125000);
-
-  reverse(1);
-
   HAL_SYSTICK_Config(SystemCoreClock / (10000U / uwTickFreq));  // 2097152U
-
-  LL_GPIO_SetOutputPin(GPIOA, GPIO_PIN_9);   //! U
-  LL_GPIO_SetOutputPin(GPIOC, GPIO_PIN_14);  //! V
-  LL_GPIO_SetOutputPin(GPIOA, GPIO_PIN_6);   //! W
-
-  int mechanicalAngle;
 
   while (true) {
     for (int i = 0; i < 128; i += 1) {
@@ -41,46 +48,48 @@ int calibration(void) {
         goto END;
       }
 
-      pwmOutput(i, 0.2);
+      pwmOutput(i, 0.3);
       HAL_Delay(1);
     }
   }
 END:
-  timeLoop(500) { pwmOutput(0, 0.3); }
-  timeLoop(200) { pwmOutput(32, 0.1); }
-  timeLoop(500) { pwmOutput(0, 0.3); }
-  timeLoop(200) { pwmOutput(128 - 32, 0.1); }
-  timeLoop(3000) { pwmOutput(0, 0.4); }
-  reverse(1);
+  pwmOutput(0, 0.2);
+  HAL_Delay(300);
+  pwmOutput(32, 0.1);
+  HAL_Delay(100);
+  pwmOutput(0, 0.2);
+  HAL_Delay(300);
+  pwmOutput(128 - 32, 0.1);
+  HAL_Delay(100);
+  pwmOutput(0, 0.3);
+  HAL_Delay(200);
+
   mechanicalAngle = 0;
-  for (int i = 0; i < 20; i++) {
-    pwmOutput(0, 0.4);
+  for (int i = 0; i < 10; i++) {
+    pwmOutput(0, 0.2);
     mechanicalAngle = (mechanicalAngle * i + encoderRead()) / (i + 1);
     HAL_Delay(500);
   }
-  return mechanicalAngle;
+  return 4096 - mechanicalAngle;
 }
 
 void ESC_initialize() {
   int doremi[3] = {1047, 1175, 1319};
+  reverse(1);
   for (int i = 0; i < 3; i++) {
     changeFreq(doremi[i]);
-    timeLoop(100) {
-      reverse(1);
-      pwmOutput(0, 0.1);
-    }
-    // reverse(0);
+    pwmOutput(0, 0.1);
+    HAL_Delay(100);
   }
-  reverse(0);
-  HAL_Delay(100);
+
   reference = calibration();
 
   HAL_SYSTICK_Config(SystemCoreClock / (1000U / uwTickFreq));  // 2097152U
   changeFreq(1047);
-  timeLoop(800) {
-    pwmOutput(0, 0.1);  //ブザーならす
-  }
+
+  pwmOutput(0, 0.1);  //ブザーならす
+  HAL_Delay(500);
+
   reverse(0);
-  // changeFreq(30000);
   changeFreq(30000);
 }

@@ -100,42 +100,31 @@ void pwmOutput(int a, float power) {  //各相に電圧を印加するよ
 
 int encoderRead(void) {
   HAL_ADC_Start(&hadc);
-
-  // HAL_ADC_Stop(&hadc);
-  int s = HAL_ADC_PollForConversion(&hadc, 3);
-  int value = 0;
-  if (s == HAL_OK) {
-    value = HAL_ADC_GetValue(&hadc);
-  }
+  HAL_ADC_PollForConversion(&hadc, 3);
+  int value = HAL_ADC_GetValue(&hadc);
+  HAL_ADC_Stop(&hadc);
 
   return 4095 - value;
 }
 
 void ESC_activate(void) {
-  bool startFlag = false;
-  while (!startFlag) {
+  while (serialBuffer[0] != 0B11111111) {
     HAL_UART_Receive_IT(&huart2, serialBuffer, 1);
-    // HAL_UART_Transmit_IT(&huart2, buffer, 1);
-    gUartReceived = 0;
-
-    if (serialBuffer[0] != 0) {
-      startFlag = true;
-    }
+  }
+  while (serialBuffer[0] != 0B00000000) {
+    HAL_UART_Receive_IT(&huart2, serialBuffer, 1);
+  }
+  while (serialBuffer[0] != 0B10000000) {
+    HAL_UART_Receive_IT(&huart2, serialBuffer, 1);
   }
 }
 
-int convertToElectricalAngle(
-    const int _mechanicalAngle) {  //電気角に変換 1byteで返す
-  int _electricalAngle = constrain(_mechanicalAngle, 0, 4095) % 585;
-  _electricalAngle = constrain(map(_electricalAngle, 0, 585, 0, 127), 0, 127);
-
-  return _electricalAngle;
-}
-
 char getElectricalAngle(void) {
-  int angle = encoderRead() + 4096 - reference;  // 1447
-  angle %= 4096;
-  angle = convertToElectricalAngle(angle);
+  mechanicalAngle = encoderRead() + reference;  // 1447
+  mechanicalAngle %= 4096;
+  char angle =
+      constrain(map(constrain(_mechanicalAngle, 0, 4095) % 585, 0, 585, 0, 127),
+                0, 127);  //電気角変換
 
-  return (char)angle;
+  return angle;
 }

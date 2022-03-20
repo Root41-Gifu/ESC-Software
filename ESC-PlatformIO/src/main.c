@@ -2,14 +2,13 @@
 #include "stdbool.h"
 
 ADC_HandleTypeDef hadc;
-
 UART_HandleTypeDef huart2;
 
-#define USART_RX_BUFFSIZE 10
+#define USART_RX_BUFFSIZE 3
 
-static UART_HandleTypeDef *pHuart;
-static uint8_t RxBuff[USART_RX_BUFFSIZE];
-static uint32_t rd_ptr;
+// static UART_HandleTypeDef *pHuart;
+// static uint8_t RxBuff[USART_RX_BUFFSIZE];
+// static uint32_t rd_ptr;
 
 int gUartReceived = 0;
 
@@ -19,16 +18,19 @@ static void MX_TIM2_Init(void);
 static void MX_ADC_Init(void);
 static void MX_USART2_UART_Init(void);
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) { gUartReceived = 1; }
+// void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) { gUartReceived = 1; }
 
-uint8_t serialBuffer[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+uint8_t serialBuffer[3] = {0};
 bool serialBeginFlag = false;
-uint8_t speed = 2;
 
 int reference = 0;
 char electricalAngle = 0;
 char _electricalAngle = 0;
-int error = 0;
+int velocity = 0;
+int mechanicalAngle = 0;
+int _mechanicalAngle = 0;
+
+uint16_t ADCVALUE = 0;
 
 #include "stdctrl.h"
 #include "ESC.h"
@@ -48,9 +50,6 @@ int main(void) {
   LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH3);
   LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH4);
   LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH1);
-
-  // HAL_ADC_Start(&hadc);
-
   ESC_activate();
 
   ESC_initialize();
@@ -86,7 +85,7 @@ void SystemClock_Config(void) {
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLLMUL_4;
   RCC_OscInitStruct.PLL.PLLDIV = RCC_PLLDIV_2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-    Error_Handler();
+    velocity_Handler();
   }
   /** Initializes the CPU, AHB and APB buses clocks
    */
@@ -98,12 +97,12 @@ void SystemClock_Config(void) {
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK) {
-    Error_Handler();
+    velocity_Handler();
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2;
   PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
-    Error_Handler();
+    velocity_Handler();
   }
 }
 
@@ -124,28 +123,29 @@ static void MX_ADC_Init(void) {
   hadc.Init.OversamplingMode = DISABLE;
   hadc.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
   hadc.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc.Init.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-  hadc.Init.ScanConvMode = ADC_SCAN_DIRECTION_FORWARD;
+  hadc.Init.SamplingTime = ADC_SAMPLETIME_160CYCLES_5;
+  // hadc.Init.ScanConvMode = ADC_SCAN_DIRECTION_FORWARD;
+  hadc.Init.ScanConvMode = DISABLE;
   hadc.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc.Init.ContinuousConvMode = DISABLE;
+  hadc.Init.ContinuousConvMode = ENABLE;
   hadc.Init.DiscontinuousConvMode = DISABLE;
   hadc.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  hadc.Init.DMAContinuousRequests = DISABLE;
+  hadc.Init.DMAContinuousRequests = ENABLE;
   hadc.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   hadc.Init.Overrun = ADC_OVR_DATA_PRESERVED;
   hadc.Init.LowPowerAutoWait = DISABLE;
   hadc.Init.LowPowerFrequencyMode = DISABLE;
   hadc.Init.LowPowerAutoPowerOff = DISABLE;
   if (HAL_ADC_Init(&hadc) != HAL_OK) {
-    Error_Handler();
+    velocity_Handler();
   }
   /** Configure for the selected ADC regular channel to be converted.
    */
   sConfig.Channel = ADC_CHANNEL_7;
   sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK) {
-    Error_Handler();
+    velocity_Handler();
   }
   /* USER CODE BEGIN ADC_Init 2 */
 
@@ -248,7 +248,7 @@ static void MX_USART2_UART_Init(void) {
   huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
   if (HAL_UART_Init(&huart2) != HAL_OK) {
-    Error_Handler();
+    velocity_Handler();
   }
   /* USER CODE BEGIN USART2_Init 2 */
 
@@ -301,14 +301,15 @@ static void MX_GPIO_Init(void) {
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
+ * @brief  This function is executed in case of velocity occurrence.
  * @retval None
  */
-void Error_Handler(void) {
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
+void velocity_Handler(void) {
+  /* USER CODE BEGIN velocity_Handler_Debug */
+  /* User can add his own implementation to report the HAL velocity return state
+   */
   __disable_irq();
   while (1) {
   }
-  /* USER CODE END Error_Handler_Debug */
+  /* USER CODE END velocity_Handler_Debug */
 }
