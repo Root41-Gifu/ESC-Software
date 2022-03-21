@@ -18,7 +18,8 @@ static void MX_TIM2_Init(void);
 static void MX_ADC_Init(void);
 static void MX_USART2_UART_Init(void);
 
-// void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) { gUartReceived = 1; }
+// void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) { gUartReceived = 1;
+// }
 
 uint8_t serialBuffer[3] = {0};
 bool serialBeginFlag = false;
@@ -30,7 +31,9 @@ int velocity = 0;
 int mechanicalAngle = 0;
 int _mechanicalAngle = 0;
 
-uint16_t ADCVALUE = 0;
+long timeout = 0;
+bool isTimeout = false;
+bool mode = 0;
 
 #include "stdctrl.h"
 #include "ESC.h"
@@ -53,7 +56,6 @@ int main(void) {
   ESC_activate();
 
   ESC_initialize();
-
   HAL_SYSTICK_Config(SystemCoreClock / (262144U));  // 2097152U
   // HAL_SYSTICK_Config((uint32_t)20U);  // 2097152U
 
@@ -62,7 +64,61 @@ int main(void) {
   LL_GPIO_SetOutputPin(GPIOA, GPIO_PIN_6);   //! W
 
   while (1) {
+    HAL_UART_Receive_IT(&huart2, serialBuffer, 1);
+
     ESC_Drive();
+
+    // if (serialBuffer[0] != 300) {
+    // if ((serialBuffer[0] & 0B10000000) == 0B00000000) {  //フィルタ
+    //   value = (serialBuffer[0] & 0B00111111);
+    //   // value /= 2;
+    //   if ((serialBuffer[0] & 0B01000000) != 0B00000000) {  //逆転
+    //     value *= -1;
+    //   }
+    //   mode = true;
+    //   if (value == 0) {
+    //     mode = false;
+    //   } else if (serialBuffer[0] == 0B01111111) {
+    //     value = 0;
+    //     ESC_Drive();
+    //   }
+    // }
+    // serialBuffer[0] = 300;
+    // isTimeout = false;
+    // changeFreq(200000);
+    // timeout = HAL_GetTick();
+    // } else {
+    //   if (HAL_GetTick() - timeout > 10000) {
+    //     mode = false;
+    //     isTimeout = true;
+    //   }
+    // }
+
+    // value = 60;
+    // mode = true;
+    for (int i = 0; i < 50; i++) {
+      ESC_Drive();
+      // if (mode) {
+      //   ESC_Drive();
+      // } else {
+      //   integral = 0;
+      //   // if (isTimeout) {
+      //   //   if ((HAL_GetTick() / 100) % 10 <= 2) {
+      //   //     reverse(true);
+      //   //     // HAL_SYSTICK_Config(SystemCoreClock / (1000U / uwTickFreq));
+      //   //
+      //   //     // 2097152U
+      //   //     changeFreq(1047);
+      //   //     pwmOutput(0, 0.1);  //ブザーならす
+      //   //   } else {
+      //   //     changeFreq(200000);
+      //   //     reverse(false);
+      //   //   }
+      //   // } else {
+      //   reverse(false);
+      //   // }
+      // }
+    }
   }
 }
 

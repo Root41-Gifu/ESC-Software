@@ -1,21 +1,16 @@
-// #define timeLoop(x)      \
-//   timer = HAL_GetTick(); \
-//   while (HAL_GetTick() - timer < x)
-
-// unsigned long timer;
-
-bool direction = true;
 char interval = 0;
 
-int value = -20;
+int value = 0;
 int integral = 0;
 
 void ESC_Drive() {
   electricalAngle = getElectricalAngle();
+
+  float neko = (float)integral / 1000.0;
   if (integral > 0) {
-    pwmOutput((electricalAngle + 128 + 35) % 128, (float)integral / 1000.0);
+    pwmOutput((electricalAngle + 128 + 35) % 128, neko);
   } else {
-    pwmOutput((electricalAngle + 128 - 35) % 128, (float)integral / -1000.0);
+    pwmOutput((electricalAngle + 128 - 35) % 128, neko * -1);
   }
   _electricalAngle = electricalAngle;
 
@@ -91,5 +86,5 @@ void ESC_initialize() {
   HAL_Delay(500);
 
   reverse(0);
-  changeFreq(30000);
+  changeFreq(20000);
 }
