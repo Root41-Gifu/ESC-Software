@@ -31,8 +31,6 @@ int velocity = 0;
 int mechanicalAngle = 0;
 int _mechanicalAngle = 0;
 
-long timeout = 0;
-bool isTimeout = false;
 bool mode = 0;
 
 #include "stdctrl.h"
@@ -66,58 +64,29 @@ int main(void) {
   while (1) {
     HAL_UART_Receive_IT(&huart2, serialBuffer, 1);
 
-    ESC_Drive();
-
     // if (serialBuffer[0] != 300) {
-    // if ((serialBuffer[0] & 0B10000000) == 0B00000000) {  //フィルタ
-    //   value = (serialBuffer[0] & 0B00111111);
-    //   // value /= 2;
-    //   if ((serialBuffer[0] & 0B01000000) != 0B00000000) {  //逆転
-    //     value *= -1;
-    //   }
-    //   mode = true;
-    //   if (value == 0) {
-    //     mode = false;
-    //   } else if (serialBuffer[0] == 0B01111111) {
-    //     value = 0;
-    //     ESC_Drive();
-    //   }
-    // }
-    // serialBuffer[0] = 300;
-    // isTimeout = false;
-    // changeFreq(200000);
-    // timeout = HAL_GetTick();
-    // } else {
-    //   if (HAL_GetTick() - timeout > 10000) {
-    //     mode = false;
-    //     isTimeout = true;
-    //   }
-    // }
-
-    // value = 60;
-    // mode = true;
+    if ((serialBuffer[0] & 0B10000000) == 0B00000000) {  //フィルタ
+      value = (serialBuffer[0] & 0B00111111);
+      if ((serialBuffer[0] & 0B01000000) != 0B00000000) {  //逆転
+        value *= -1;
+      }
+      mode = true;
+      if (value == 0) {
+        mode = false;
+      } else if (serialBuffer[0] == 0B01111111) {
+        value = 0;
+        mode = true;
+        // ESC_Drive();
+      }
+    }
     for (int i = 0; i < 50; i++) {
-      ESC_Drive();
-      // if (mode) {
-      //   ESC_Drive();
-      // } else {
-      //   integral = 0;
-      //   // if (isTimeout) {
-      //   //   if ((HAL_GetTick() / 100) % 10 <= 2) {
-      //   //     reverse(true);
-      //   //     // HAL_SYSTICK_Config(SystemCoreClock / (1000U / uwTickFreq));
-      //   //
-      //   //     // 2097152U
-      //   //     changeFreq(1047);
-      //   //     pwmOutput(0, 0.1);  //ブザーならす
-      //   //   } else {
-      //   //     changeFreq(200000);
-      //   //     reverse(false);
-      //   //   }
-      //   // } else {
-      //   reverse(false);
-      //   // }
-      // }
+      if (mode) {
+        reverse(true);
+        ESC_Drive();
+      } else {
+        integral = 0;
+        reverse(false);
+      }
     }
   }
 }
@@ -362,7 +331,8 @@ static void MX_GPIO_Init(void) {
  */
 void velocity_Handler(void) {
   /* USER CODE BEGIN velocity_Handler_Debug */
-  /* User can add his own implementation to report the HAL velocity return state
+  /* User can add his own implementation to report the HAL velocity return
+   * state
    */
   __disable_irq();
   while (1) {

@@ -1,6 +1,6 @@
 char interval = 0;
 
-int value = 0;
+int value = 20;
 int integral = 0;
 
 void ESC_Drive() {
