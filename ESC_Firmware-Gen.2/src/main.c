@@ -18,8 +18,7 @@ static void MX_TIM2_Init(void);
 static void MX_ADC_Init(void);
 static void MX_USART2_UART_Init(void);
 
-// void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) { gUartReceived = 1;
-// }
+// void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) { gUartReceived = 1; }
 
 uint8_t serialBuffer[3] = {0};
 bool serialBeginFlag = false;
@@ -29,10 +28,9 @@ char electricalAngle = 0;
 char _electricalAngle = 0;
 int velocity = 0;
 int mechanicalAngle = 0;
-char mask = 0;
 int _mechanicalAngle = 0;
 
-bool mode = 0;
+uint16_t ADCVALUE = 0;
 
 #include "stdctrl.h"
 #include "ESC.h"
@@ -52,9 +50,10 @@ int main(void) {
   LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH3);
   LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH4);
   LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH1);
-  ESC_activate();
+  // ESC_activate();
 
   ESC_initialize();
+
   HAL_SYSTICK_Config(SystemCoreClock / (262144U));  // 2097152U
   // HAL_SYSTICK_Config((uint32_t)20U);  // 2097152U
 
@@ -63,32 +62,7 @@ int main(void) {
   LL_GPIO_SetOutputPin(GPIOA, GPIO_PIN_6);   //! W
 
   while (1) {
-    HAL_UART_Receive_IT(&huart2, serialBuffer, 1);
-
-    // if (serialBuffer[0] != 300) {
-    if ((serialBuffer[0] & 0B10000000) == 0B00000000) {  //NOTE:フィルタ
-      value = (serialBuffer[0] & 0B00111111);
-      if ((serialBuffer[0] & 0B01000000) != 0B00000000) {  //逆転
-        value *= -1;
-      }
-      mode = true;
-      if (value == 0) {
-        mode = false;
-      } else if (serialBuffer[0] == 0B01111111) {//NOTE:ここ
-        value = 0;
-        mode = true;
-        // ESC_Drive();
-      }
-    }
-    for (int i = 0; i < 50; i++) {
-      if (mode) {
-        reverse(true);
-        ESC_Drive();
-      } else {
-        integral = 0;
-        reverse(false);
-      }
-    }
+    ESC_Drive();
   }
 }
 
@@ -332,8 +306,7 @@ static void MX_GPIO_Init(void) {
  */
 void velocity_Handler(void) {
   /* USER CODE BEGIN velocity_Handler_Debug */
-  /* User can add his own implementation to report the HAL velocity return
-   * state
+  /* User can add his own implementation to report the HAL velocity return state
    */
   __disable_irq();
   while (1) {
